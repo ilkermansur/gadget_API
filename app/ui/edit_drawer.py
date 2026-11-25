@@ -82,7 +82,7 @@ class EditDrawer:
     @ui.refreshable_method
     def review_area(self) -> None:
         ui.label(t("edit.changes_title", self.lang)).classes("text-xs font-semibold gx-muted")
-        labels = {f.name: f.label for f in self.fields}
+        labels = {f.name: f.label_for(self.lang) for f in self.fields}
         for name, new in self.changes.items():
             with ui.row().classes("w-full items-center gap-2 p-2").style("background:#FEF9C3;border-radius:6px"):
                 ui.label(labels.get(name, name)).classes("font-semibold text-sm")

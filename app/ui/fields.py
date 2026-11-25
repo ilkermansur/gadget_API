@@ -104,14 +104,14 @@ class FieldInput:
             self.build()
             if needs_null_box(field):
                 self.null_box = ui.checkbox(t("form.send_null", lang)).classes("text-xs")
-            if field.help and not compact:
-                ui.label(field.help).classes("text-xs gx-muted")
+            if field.help_for(lang) and not compact:
+                ui.label(field.help_for(lang)).classes("text-xs gx-muted")
             self.error_label = ui.label("").classes("text-xs").style("color:#B91C1C")
             self.error_label.set_visibility(False)
 
     @property
     def label(self) -> str:
-        return self.field.label + (" *" if self.field.required else "")
+        return self.field.label_for(self.lang) + (" *" if self.field.required else "")
 
     # --- çizim ------------------------------------------------------------------------------
 

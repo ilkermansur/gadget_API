@@ -108,6 +108,14 @@ class Field:
     variants: list["Field"] = field(default_factory=list)   # union: seçilebilecek türler
     min_items: int | None = None                            # objlist / tags / multi
 
+    def label_for(self, lang: str) -> str:
+        """Ekran diline göre etiket: EN'de x-title-en varsa o, yoksa TR etiket."""
+        return self.label_en if lang == "en" and self.label_en else self.label
+
+    def help_for(self, lang: str) -> str:
+        """Ekran diline göre yardım metni: EN'de x-description-en varsa o, yoksa TR metin."""
+        return self.help_en if lang == "en" and self.help_en else self.help
+
 
 @dataclass
 class Endpoint:

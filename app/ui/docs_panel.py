@@ -40,7 +40,7 @@ def render_docs(view: EndpointView, lang: str, source: str) -> None:
                 ("required", "docs.required"), ("label", "docs.label"), ("help", "docs.what"))]
             rows = [{"name": f.name or "(body)", "type": t(f"kinds.{f.kind}", lang), "location": f.location,
                      "required": t("common.yes" if f.required else "common.no", lang),
-                     "label": f.label + (f" ✎" if f.overridden else ""), "help": f.help} for f in visible]
+                     "label": f.label_for(lang) + (f" ✎" if f.overridden else ""), "help": f.help_for(lang)} for f in visible]
             table = ui.table(rows=rows, columns=columns, row_key="name").props("flat dense").classes("w-full")
             colors = json.dumps(theme.LOCATION_COLORS).replace('"', "'")   # tek tırnak: HTML niteliğini bozmasın; renkler theme.py'de
             table.add_slot("body-cell-location", f"""
