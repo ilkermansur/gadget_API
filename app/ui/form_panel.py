@@ -199,7 +199,17 @@ class FormPanel:
             if field_input:
                 field_input.show_error(t("form.required_missing", self.lang))
             return
-        await open_edit(self.ctx, self.user, self.lang, self.edit_link, record, on_done=self.after_edit)
+        context = {}
+        for name in self.edit_link.context:                     # iç içe kaynak: üst yol değerleri de gerekli
+            context_input = self.inputs.get(name)
+            value = context_input.read() if context_input else NOT_SENT
+            if value in (NOT_SENT, None, ""):
+                if context_input:
+                    context_input.show_error(t("form.required_missing", self.lang))
+                return
+            context[name] = value
+        await open_edit(self.ctx, self.user, self.lang, self.edit_link, record, on_done=self.after_edit,
+                        context=context)
 
     async def after_edit(self, result: Result) -> None:
         self.on_result(result, {})

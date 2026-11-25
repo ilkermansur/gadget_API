@@ -504,7 +504,8 @@ class MainPage:
         if record is None:
             ui.notify(t("edit.not_editable", self.lang), type="warning")
             return
-        await open_edit(self.ctx, self.user, self.lang, link, record, on_done=self.after_row_edit)
+        await open_edit(self.ctx, self.user, self.lang, link, record, on_done=self.after_row_edit,
+                        context=editing.context_values(link, self.result_values))   # ör. listedeki switch
 
     async def after_row_edit(self, result) -> None:
         """Düzenleme başarılıysa liste yeniden çalıştırılır (tablo güncel kalsın); değilse hata gösterilir."""

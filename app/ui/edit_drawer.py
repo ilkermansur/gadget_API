@@ -14,27 +14,32 @@ from nicegui import ui
 
 from core.errors import describe
 from core import catalog
-from core.editing import EditLink, changed_values
+from core.editing import EditLink, changed_values, prefill_values
 from core.i18n import t
 from core.models import User
 from ui.fields import NOT_SENT, FieldInput
 from ui.state import AppContext
 
 
-async def open_edit(ctx: AppContext, user: User, lang: str, link: EditLink, record_id: object, on_done) -> None:
-    read = await catalog.run_endpoint(ctx.db, ctx.box, ctx.tokens, user, link.read_id, {link.param: record_id})
+async def open_edit(ctx: AppContext, user: User, lang: str, link: EditLink, record_id: object, on_done,
+                    context: dict | None = None) -> None:
+    """context: iç içe kaynakta kaydın üst yol değerleri (ör. {"switch": "sw-ank-01"}); okumaya ve PATCH'e gider."""
+    context = context or {}
+    read = await catalog.run_endpoint(ctx.db, ctx.box, ctx.tokens, user, link.read_id,
+                                      {**context, link.param: record_id})
     if read.outcome != "ok" or not isinstance(read.body, dict):
         ui.notify(t("edit.load_failed", lang) + (f" ({read.status})" if read.status else ""), type="negative")
         return
     patch_view = catalog.endpoint_view(ctx.db, catalog.get_entry(ctx.db, link.patch_id))
-    EditDrawer(ctx, user, lang, link, record_id, read.body, patch_view, on_done)
+    EditDrawer(ctx, user, lang, link, record_id, read.body, patch_view, on_done, context)
 
 
 class EditDrawer:
-    def __init__(self, ctx, user, lang, link: EditLink, record_id, current: dict, patch_view, on_done):
-        self.ctx, self.user, self.lang, self.link = ctx, user, lang, link
-        self.record_id, self.current, self.on_done = record_id, current, on_done
+    def __init__(self, ctx, user, lang, link: EditLink, record_id, current: dict, patch_view, on_done, context: dict):
+        self.ctx, self.user, self.lang, self.link, self.context = ctx, user, lang, link, context
+        self.record_id, self.on_done = record_id, on_done
         self.fields = [f for f in patch_view.fields if f.location == "body" and not f.hidden]
+        self.current = prefill_values(self.fields, current)    # alana uymayan değer boş kalır (ör. sayı alanında "trunk")
         self.changes: dict = {}
 
         with ui.dialog().props("position=right") as self.dialog, \
@@ -45,8 +50,7 @@ class EditDrawer:
                 ui.button(icon="close", on_click=self.dialog.close).props("flat round dense")
             ui.label(f"{t('edit.loaded', lang)} {record_id}").classes("gx-muted text-sm gx-mono")
             with ui.column().classes("w-full gap-3") as self.form_step:
-                self.inputs = {f.name: FieldInput(replace(f, default=current.get(f.name, f.default)), lang)
-                               for f in self.fields}
+                self.inputs = {f.name: FieldInput(replace(f, default=self.current[f.name]), lang) for f in self.fields}
                 self.form_error = ui.label("").classes("text-sm").style("color:#B91C1C")
                 ui.button(t("edit.review", lang), on_click=self.review).props("unelevated no-caps")
             with ui.column().classes("w-full gap-3") as self.review_step:
@@ -110,7 +114,7 @@ class EditDrawer:
 
     async def send(self) -> None:
         result = await catalog.run_endpoint(self.ctx.db, self.ctx.box, self.ctx.tokens, self.user, self.link.patch_id,
-                                            {self.link.param: self.record_id, **self.changes})
+                                            {**self.context, self.link.param: self.record_id, **self.changes})
         if result.outcome == "ok":
             ui.notify(t("edit.saved", self.lang), type="positive")
             self.dialog.close()
