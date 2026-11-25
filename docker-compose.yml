@@ -1,0 +1,23 @@
+# Üretim:      docker compose up -d --build                 → sadece portal (app)
+# Test ortamı: docker compose --profile test up -d --build  → portal + test-api
+# Portal, test-api'ye container ağı üzerinden http://test-api:9000 adresiyle ulaşır.
+services:
+  app:
+    build: ./app
+    env_file: .env
+    environment:
+      # .env'de boşsa compose hiç başlatmaz ve bu mesajı gösterir (uygulama yeniden başlama döngüsüne girmez).
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY .env icinde bos - README Kurulum adimlarina bak}
+    ports: ["${APP_PORT:-8080}:8080"]
+    volumes: ["gadget-data:/data"]
+    restart: unless-stopped
+
+  test-api:
+    build: ./test-api
+    profiles: ["test"]
+    environment:
+      TEST_API_SCHEMA: ${TEST_API_SCHEMA:-v1}   # v2 → şema değişmiş görünür (senkron denemesi)
+    ports: ["127.0.0.1:${TEST_API_PORT:-9000}:9000"]
+
+volumes:
+  gadget-data: {}

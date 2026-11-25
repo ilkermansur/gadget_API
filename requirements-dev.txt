@@ -1,0 +1,4 @@
+# Yerel geliştirme ve testler için tek ortam: portal + test-api + pytest
+-r app/requirements.txt
+-r test-api/requirements.txt
+pytest==9.2.0

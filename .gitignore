@@ -1,0 +1,18 @@
+.env
+.venv/
+.data/
+__pycache__/
+*.pyc
+.pytest_cache/
+.nicegui/
+.DS_Store
+
+# Çalışma alanı dokümanları: yerelde tutulur, depoya girmez (depoda sadece README)
+docs/
+spec/
+tasks/
+mockup/
+CLAUDE.md
+# Birim testleri: yerelde tutulur, depoya girmez
+tests/
+pytest.ini
