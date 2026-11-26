@@ -154,8 +154,12 @@ class FieldInput:
 
     def build_number(self) -> None:
         field = self.field
-        self.element = ui.number(self.simple_label(), value=field.default, min=field.minimum, max=field.maximum,
-                                 step=field.step, placeholder=field.placeholder).classes("w-full")
+        # min/max kutuya verilmez: NiceGUI odak çıkınca değeri sınıra kırpıyor, ekranda 4094 görünürken 5000
+        # gönderilebiliyordu. Doğrulamayı FastAPI yapar (422 alanın altında); aralık yalnızca ipucu olarak görünür.
+        self.element = ui.number(self.simple_label(), value=field.default, step=field.step,
+                                 placeholder=field.placeholder).classes("w-full")
+        if field.range_text():
+            self.element.props(f'hint="{field.range_text()}"')
 
     def build_toggle(self) -> None:
         self.element = ui.switch(self.simple_label(), value=bool(self.field.default))

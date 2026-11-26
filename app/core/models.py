@@ -112,6 +112,13 @@ class Field:
         """Ekran diline göre etiket: EN'de x-title-en varsa o, yoksa TR etiket."""
         return self.label_en if lang == "en" and self.label_en else self.label
 
+    def range_text(self) -> str:
+        """Sayı alanının izin verilen aralığı, ipucu olarak: "1 – 4094", "≥ 0", "≤ 10"; sınır yoksa boş."""
+        low, high = (number_text(n) for n in (self.minimum, self.maximum))
+        if low and high:
+            return f"{low} – {high}"
+        return f"≥ {low}" if low else f"≤ {high}" if high else ""
+
     def help_for(self, lang: str) -> str:
         """Ekran diline göre yardım metni: EN'de x-description-en varsa o, yoksa TR metin."""
         return self.help_en if lang == "en" and self.help_en else self.help
@@ -348,3 +355,10 @@ class CustomSpec:
     read_from: str = ""         # 6 Düzenleme bağlantısı
     row_action: str = ""
     auth_from: int | None = None   # kimliği ödünç alınan resource (yoksa kimliksiz)
+
+
+def number_text(n: float | None) -> str:
+    """4094.0 → "4094", 2.5 → "2.5", None → ""."""
+    if n is None:
+        return ""
+    return str(int(n)) if float(n).is_integer() else str(n)
